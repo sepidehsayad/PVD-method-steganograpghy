@@ -48,6 +48,7 @@ def calculate(list_of_di,lower_bound):
         
     return b
 
+
 def convert_dec_to_bin(b):
     bine=[]
     for i in b :
@@ -55,13 +56,20 @@ def convert_dec_to_bin(b):
     return bine
         
 
+def show_new_picture(pixels):
+    img = Image.new('L', (400,400))
+    img.putdata(pixels)
+    img.save("new__img.bmp")
+    img.show()
     
 
 di=calculate_di(pixel_value_hostimage)
-print(pixel_value_hostimage[-2])
+#print(pixel_value_hostimage[-2])
 lower_bound=find_domain_in_quantity_table(di)
 
 z=calculate(di,lower_bound)
 
-q=convert_dec_to_bin(z)
-
+show_new_picture(z)
+#print(z[0:40])
+#q=convert_dec_to_bin(z)
+#print(q[0:40])
