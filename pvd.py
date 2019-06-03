@@ -1,16 +1,13 @@
 from PIL import Image
 import math
 
-host_image = Image.open('baboon512.bmp','r') #open image 
-
-file = open('secretdata.txt','r') #file of scret data
-
+host_image = Image.open('baboon512.bmp','r') #open image
+secret_image = Image.open('boat256.bmp','r') #open image
 
 pixel_value_hostimage = list(host_image.getdata()) #we have pixels in this list
 
-width, height =host_image.size #size of pic
-
-
+pix_val_secret=list(secret_image.getdata())
+#print(pix_val_secret[0:30])
 def pixel_value(list_of_values): #RGB(R,G,B) in gray scale = RGB(X,X,X) so one of them is enough
     pixel_val=[]
     for i in list_of_values:
@@ -22,7 +19,8 @@ def calculate_di(pixels_value):
     for i in range(0,len(pixels_value),2):
         list_of_di+=[abs(pixels_value[i]-pixels_value[i+1])]
     return list_of_di
-        
+
+
 def find_domain_in_quantity_table(list_of_di):
     uper_lower_bound=[]
     for i in list_of_di :
@@ -46,7 +44,6 @@ def find_domain_in_quantity_table(list_of_di):
              uper_lower_bound+=[[128,255,m]]
     return uper_lower_bound
 
-
 def list_of_secret_data(file):#all the scret data in the one string 
         with open("secretdata.txt", "r") as ins:
             array = []
@@ -58,13 +55,16 @@ def list_of_secret_data(file):#all the scret data in the one string
 def spilit_k_secret_data(string_of_secret_data,lowerbound_and_k_slice):
     list_of_k_secret_data=[]
     for i in lowerbound_and_k_slice:
-        if string_of_secret_data=='' :
+        if string_of_secret_data=='' or list_of_k_secret_data==[] :
             return list_of_k_secret_data
         else :
             temp= i[2] #how much we want to slice
+            #print(temp)
             list_of_k_secret_data +=[string_of_secret_data[0:temp]]
+            
             string_of_secret_data =string_of_secret_data[temp:]
 
+    return list_of_k_secret_data
             
         
 def convert_secret_data_to_decimal(secret_data_k_slice_k_slice):
@@ -101,11 +101,18 @@ def cal_new_val_of_pixels(pixel_value,new_di,difrense_2pixels):
         elif pixel_value[j] < pixel_value[j+1] and new_di[i] <= difrense_2pixels[i] :
             new_pixels += [(pixel_value[j]+(int(abs(new_di[i]-difrense_2pixels[i])/2)+1)) ,(pixel_value[j+1]-int(abs(new_di[i]-difrense_2pixels[i])/2))]
             j+=2
-    for k in range(j,len(pixel_value),2):
-        new_pixels+=[pixel_value[k],pixel_value[k+1]]
+    for k in range(j,len(pixel_values),2):
+        new_pixels+=[pixel_values[k],pixel_values[k+1]]
     
     return  new_pixels
 
+
+def convert_pixelvalue_to_binary(pixel_val):
+    binary_of_pixel_value=[]
+    for i in pixel_val:
+        binary_of_pixel_value+=['{0:08b}'.format(i)]
+
+    return binary_of_pixel_value
 
 def show_new_picture(pixels):
     img = Image.new('L', (512, 512))
@@ -115,20 +122,36 @@ def show_new_picture(pixels):
 
 
 
-pixel_value=pixel_value(pixel_value_hostimage)
-
-difrense_2pixels =calculate_di(pixel_value)
-
+pixel_values=pixel_value(pixel_value_hostimage)
+#print(pixel_value)
+difrense_2pixels =calculate_di(pixel_values)
 
 find_domain_in_quantity_table_and_lowerbound=find_domain_in_quantity_table(difrense_2pixels)
+#print(find_domain_in_quantity_table_and_lowerbound[0:30])
 
-string_of_secret_data=list_of_secret_data(file)
+##3tayi bayad iki bashe
+pixel_value2=pixel_value(pix_val_secret)
+#print(pixel_value2[0:30])
+binary_pixel_values_secret= convert_pixelvalue_to_binary(pixel_value2)
+
+#print(binary_pixel_values_secret[0:30])
+pixel_val =[]
+f_sec_pix='' 
+for i in range(len(binary_pixel_values_secret)) :
+    f_sec_pix +=binary_pixel_values_secret[i]
+
+
+string_of_secret_data=f_sec_pix
+#print("len: ",string_of_secret_data)
+#print(string_of_secret_data)
 secret_data_k_slice_k_slice = spilit_k_secret_data(string_of_secret_data,find_domain_in_quantity_table_and_lowerbound)
-
+print(secret_data_k_slice_k_slice[0:30])
 convert_secret_data_decimal=convert_secret_data_to_decimal(secret_data_k_slice_k_slice)
 
 new_di=calculate_new_di(find_domain_in_quantity_table_and_lowerbound,convert_secret_data_decimal,difrense_2pixels)
 
 pvd_pixels=cal_new_val_of_pixels(pixel_value,new_di,difrense_2pixels)
 
+
 show_new_picture(pvd_pixels)
+
